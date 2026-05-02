@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teaching Orientations Inventory</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sa-bg: #e8f5eb; --sa-border: #6abf7a; --sa-text: #1b5e2e; --sa-mid: #6abf7a;
+    --lc-bg: #fdecea; --lc-border: #e57373; --lc-text: #7f1e1e; --lc-mid: #e57373;
+    --sr-bg: #fff9e6; --sr-border: #f0c040; --sr-text: #6b4c00; --sr-mid: #f0c040;
+    --se-bg: #e3f0fa; --se-border: #5ba3d9; --se-text: #0c3460; --se-mid: #5ba3d9;
+    --radar-green: #92D050;
+    --radar-purple: #7B5EA7;
+    --neutral-50: #f8f8f6;
+    --neutral-100: #f0efec;
+    --neutral-200: #e0dfd9;
+    --neutral-400: #a8a79f;
+    --neutral-700: #4a4a44;
+    --neutral-900: #1a1a16;
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: var(--font-body);
+    background: var(--neutral-50);
+    color: var(--neutral-900);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    border-bottom: 1px solid var(--neutral-200);
+    background: white;
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+  }
+  .site-header h1 {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: var(--neutral-900);
+    font-style: italic;
+  }
+  .site-header span {
+    font-size: 0.8rem;
+    color: var(--neutral-400);
+    font-weight: 300;
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 780px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* ── Phases ── */
+  .phase { display: none; }
+  .phase.active { display: block; }
+
+  /* ── Progress ── */
+  .progress-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; }
+  .progress-track { flex: 1; height: 3px; background: var(--neutral-200); border-radius: 2px; }
+  .progress-fill { height: 100%; background: var(--sa-border); border-radius: 2px; transition: width 0.4s ease; }
+  .progress-label { font-size: 0.8rem; color: var(--neutral-400); white-space: nowrap; }
+
+  /* ── Part header ── */
+  .part-eyebrow { font-size: 0.75rem; font-weight: 500; color: var(--neutral-400); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .4rem; }
+  .part-title { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; margin-bottom: .35rem; line-height: 1.2; }
+  .part-prompt { font-size: 0.9rem; color: var(--neutral-700); margin-bottom: 1.5rem; padding: .65rem 1rem; background: white; border-left: 2px solid var(--neutral-200); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+
+  /* ── Rank columns ── */
+  .rank-header { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 6px; }
+  .rank-label { font-size: 0.72rem; color: var(--neutral-400); text-align: center; padding-bottom: 6px; border-bottom: 1px solid var(--neutral-200); }
+
+  .drop-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1rem; }
+  .drop-zone {
+    min-height: 110px; border: 1.5px dashed var(--neutral-200);
+    border-radius: var(--radius); background: white;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, border-color .15s; padding: 6px; cursor: pointer;
+    position: relative;
+  }
+  .drop-zone.over { background: #f0f7ff; border-color: #5ba3d9; border-style: solid; }
+  .drop-zone.filled { border-style: solid; border-color: var(--neutral-200); }
+  .slot-num { font-size: 1.5rem; font-weight: 300; color: var(--neutral-200); font-family: var(--font-display); }
+
+  /* ── Cards ── */
+  .card-pool { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 1.5rem; }
+  .card {
+    padding: .75rem 1rem; border-radius: var(--radius);
+    border: 1px solid var(--neutral-200); background: white;
+    color: var(--neutral-900); font-size: 0.88rem; line-height: 1.55;
+    cursor: grab; user-select: none;
+    transition: box-shadow .15s, transform .1s, opacity .15s;
+  }
+  .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); transform: translateY(-1px); }
+  .card:active { cursor: grabbing; transform: translateY(0); }
+  .card.dragging { opacity: .3; transform: scale(.98); }
+  .card.placed { display: none; }
+  .card.selected { box-shadow: 0 0 0 2px #5ba3d9; }
+
+  .placed-card {
+    font-size: 0.78rem; line-height: 1.4; padding: 5px 7px;
+    border-radius: var(--radius-sm); width: 100%; text-align: center;
+    cursor: pointer; border: none; background: var(--neutral-100);
+    color: var(--neutral-700); font-family: var(--font-body);
+  }
+  .placed-card:hover { background: var(--neutral-200); }
+
+  /* ── Nav ── */
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: .5rem; }
+  .btn {
+    padding: .55rem 1.4rem; border-radius: var(--radius-sm);
+    border: 1px solid var(--neutral-200); background: white;
+    color: var(--neutral-900); font-size: .9rem; cursor: pointer;
+    font-family: var(--font-body); transition: background .15s;
+  }
+  .btn:hover { background: var(--neutral-100); }
+  .btn.primary { background: var(--neutral-900); color: white; border-color: var(--neutral-900); }
+  .btn.primary:hover { background: var(--neutral-700); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+
+  /* ── Touch hint ── */
+  .touch-hint { font-size: .78rem; color: var(--neutral-400); text-align: center; margin-bottom: .75rem; display: none; }
+  @media (hover: none) { .touch-hint { display: block; } }
+
+  /* ── Intro ── */
+  .intro-card {
+    background: white; border-radius: var(--radius); border: 1px solid var(--neutral-200);
+    padding: 2rem; margin-bottom: 1.5rem;
+  }
+  .intro-card h2 { font-family: var(--font-display); font-size: 2rem; font-weight: 400; margin-bottom: .75rem; line-height: 1.2; font-style: italic; }
+  .intro-card p { font-size: .9rem; color: var(--neutral-700); margin-bottom: 1rem; }
+  .intro-note { font-size: .82rem; color: var(--neutral-400); font-style: italic; }
+  .intro-ref { font-size: .78rem; color: var(--neutral-400); margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--neutral-200); }
+
+  /* ── Reveal ── */
+  .reveal-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .reveal-part { border: 1px solid var(--neutral-200); border-radius: var(--radius); overflow: hidden; background: white; }
+  .reveal-part-header { padding: .5rem 1rem; background: var(--neutral-100); font-size: .82rem; font-weight: 500; color: var(--neutral-700); }
+  .reveal-slots { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .reveal-slot { padding: .6rem .75rem; border-left: 1px solid var(--neutral-200); display: flex; flex-direction: column; gap: 5px; }
+  .reveal-slot:first-child { border-left: none; }
+  .reveal-slot-num { font-size: .7rem; color: var(--neutral-400); font-weight: 500; }
+  .reveal-card-el {
+    border-radius: var(--radius-sm); border: 1.5px solid var(--neutral-200);
+    padding: .45rem .6rem; font-size: .78rem; line-height: 1.4;
+    background: white; color: var(--neutral-700);
+    transition: background .5s, border-color .5s, color .5s;
+  }
+  .reveal-card-el.sa { background: var(--sa-bg); border-color: var(--sa-border); color: var(--sa-text); }
+  .reveal-card-el.lc { background: var(--lc-bg); border-color: var(--lc-border); color: var(--lc-text); }
+  .reveal-card-el.sr { background: var(--sr-bg); border-color: var(--sr-border); color: var(--sr-text); }
+  .reveal-card-el.se { background: var(--se-bg); border-color: var(--se-border); color: var(--se-text); }
+
+  /* ── Results ── */
+  .results-title { font-family: var(--font-display); font-size: 2rem; font-weight: 400; font-style: italic; margin-bottom: .35rem; }
+  .results-sub { font-size: .85rem; color: var(--neutral-400); margin-bottom: 1.5rem; }
+
+  .score-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+  .score-card { border-radius: var(--radius); padding: 1rem .75rem; text-align: center; border: 1.5px solid; }
+  .score-card.sa { background: var(--sa-bg); border-color: var(--sa-border); }
+  .score-card.lc { background: var(--lc-bg); border-color: var(--lc-border); }
+  .score-card.sr { background: var(--sr-bg); border-color: var(--sr-border); }
+  .score-card.se { background: var(--se-bg); border-color: var(--se-border); }
+  .score-name { font-size: .72rem; font-weight: 500; margin-bottom: 4px; line-height: 1.3; }
+  .score-name.sa { color: var(--sa-text); } .score-name.lc { color: var(--lc-text); }
+  .score-name.sr { color: var(--sr-text); } .score-name.se { color: var(--se-text); }
+  .score-pct { font-size: 1.6rem; font-weight: 400; font-family: var(--font-display); }
+  .score-pct.sa { color: var(--sa-text); } .score-pct.lc { color: var(--lc-text); }
+  .score-pct.sr { color: var(--sr-text); } .score-pct.se { color: var(--se-text); }
+  .score-badge {
+    display: inline-block; margin-top: 5px; font-size: .68rem; font-weight: 500;
+    padding: 2px 8px; border-radius: 20px; line-height: 1.4;
+  }
+  .score-badge.sa { background: var(--sa-mid); color: var(--sa-text); }
+  .score-badge.lc { background: var(--lc-mid); color: var(--lc-text); }
+  .score-badge.sr { background: var(--sr-mid); color: var(--sr-text); }
+  .score-badge.se { background: var(--se-mid); color: var(--se-text); }
+
+  /* ── Radar panel ── */
+  .radar-panel {
+    background: white; border: 1px solid var(--neutral-200);
+    border-radius: var(--radius); margin-bottom: 1.5rem;
+    display: flex; justify-content: center; align-items: center;
+    padding: 1rem 0;
+  }
+
+  /* ── Legend ── */
+  .radar-legend { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--neutral-700); }
+  .legend-line { width: 24px; height: 3px; border-radius: 2px; }
+
+  /* ── Upload comparison ── */
+  .compare-section {
+    background: white; border: 1px solid var(--neutral-200); border-radius: var(--radius);
+    padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+  }
+  .compare-title { font-size: .9rem; font-weight: 500; margin-bottom: .35rem; color: var(--neutral-900); }
+  .compare-desc { font-size: .82rem; color: var(--neutral-400); margin-bottom: .875rem; }
+  .upload-area {
+    border: 1.5px dashed var(--neutral-200); border-radius: var(--radius-sm);
+    padding: 1rem; text-align: center; cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .upload-area:hover { background: var(--neutral-50); border-color: var(--neutral-400); }
+  .upload-area input { display: none; }
+  .upload-label { font-size: .85rem; color: var(--neutral-400); cursor: pointer; }
+  .upload-label strong { color: var(--neutral-700); }
+  .compare-loaded { font-size: .82rem; color: var(--sa-text); margin-top: .5rem; }
+  .compare-clear { background: none; border: none; font-size: .78rem; color: var(--neutral-400); cursor: pointer; margin-left: .5rem; text-decoration: underline; }
+
+  /* ── Ideology cards ── */
+  .ideology-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+  .ideo-card { border-radius: var(--radius); padding: 1rem; border: 1.5px solid; position: relative; }
+  .ideo-card.sa { background: var(--sa-bg); border-color: var(--sa-border); }
+  .ideo-card.lc { background: var(--lc-bg); border-color: var(--lc-border); }
+  .ideo-card.sr { background: var(--sr-bg); border-color: var(--sr-border); }
+  .ideo-card.se { background: var(--se-bg); border-color: var(--se-border); }
+  .ideo-badge {
+    position: absolute; top: 9px; right: 9px;
+    font-size: .68rem; font-weight: 500; padding: 2px 8px; border-radius: 20px;
+  }
+  .ideo-badge.sa { background: var(--sa-mid); color: var(--sa-text); }
+  .ideo-badge.lc { background: var(--lc-mid); color: var(--lc-text); }
+  .ideo-badge.sr { background: var(--sr-mid); color: var(--sr-text); }
+  .ideo-badge.se { background: var(--se-mid); color: var(--se-text); }
+  .ideo-name { font-size: .85rem; font-weight: 500; margin-bottom: 5px; padding-right: 80px; }
+  .ideo-name.sa { color: var(--sa-text); } .ideo-name.lc { color: var(--lc-text); }
+  .ideo-name.sr { color: var(--sr-text); } .ideo-name.se { color: var(--se-text); }
+  .ideo-desc { font-size: .78rem; line-height: 1.55; }
+  .ideo-desc.sa { color: var(--sa-text); } .ideo-desc.lc { color: var(--lc-text); }
+  .ideo-desc.sr { color: var(--sr-text); } .ideo-desc.se { color: var(--se-text); }
+
+  .reset-row { text-align: center; padding-bottom: 2rem; }
+
+  /* Compare tabs */
+  .compare-tabs { display: flex; gap: 6px; margin-bottom: .875rem; }
+  .tab-btn { padding: .4rem .9rem; border-radius: var(--radius-sm); border: 1px solid var(--neutral-200); background: white; font-size: .82rem; color: var(--neutral-700); cursor: pointer; font-family: var(--font-body); transition: background .15s; }
+  .tab-btn:hover { background: var(--neutral-100); }
+  .tab-btn.active { background: var(--neutral-900); color: white; border-color: var(--neutral-900); }
+
+  /* Manual entry */
+  .manual-desc { font-size: .82rem; color: var(--neutral-400); margin-bottom: .75rem; }
+  .manual-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+  .manual-field { display: flex; flex-direction: column; gap: 5px; }
+  .manual-label { font-size: .72rem; font-weight: 500; }
+  .lc-label { color: var(--lc-text); } .se-label { color: var(--se-text); }
+  .sr-label { color: var(--sr-text); } .sa-label { color: var(--sa-text); }
+  .manual-input-wrap { display: flex; align-items: center; gap: 3px; }
+  .manual-input { width: 100%; padding: .4rem .5rem; border: 1px solid var(--neutral-200); border-radius: var(--radius-sm); font-size: .9rem; font-family: var(--font-body); background: white; color: var(--neutral-900); }
+  .manual-input:focus { outline: none; border-color: var(--neutral-400); }
+  .manual-unit { font-size: .82rem; color: var(--neutral-400); }
+  @media (max-width: 500px) { .manual-grid { grid-template-columns: repeat(2,1fr); } }
+
+  @media (max-width: 600px) {
+    .score-grid { grid-template-columns: repeat(2, 1fr); }
+    .ideology-grid { grid-template-columns: 1fr; }
+    .reveal-slots { grid-template-columns: repeat(2, 1fr); }
+    .reveal-slot:nth-child(3) { border-left: none; border-top: 1px solid var(--neutral-200); }
+    .reveal-slot:nth-child(4) { border-top: 1px solid var(--neutral-200); }
+    .drop-row { grid-template-columns: repeat(2, 1fr); }
+    .rank-header { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Teaching Orientations Inventory</h1>
+  <span>Adapted from Schiro (2013) by Nicole Mockler</span>
+</header>
+
+<main class="container">
+
+  <!-- ── INTRO ── -->
+  <div class="phase active" id="phaseIntro">
+    <div class="intro-card">
+      <h2>What's your teaching orientation?</h2>
+      <p>This activity identifies your current profile across Schiro's (2013) four teaching orientations. Work through six rounds, each with four cards. In each round, arrange the cards from the view most like yours (1) to least like yours (4).</p>
+      <p>Drag and drop to rank the cards — or on mobile, tap a card to select it then tap a slot to place it.</p>
+    <p class="intro-ref">Schiro, M. S. (2013). <em>Curriculum theory: Conflicting visions and enduring concerns</em> (2nd ed.). SAGE.</p>
+    </div>
+    <button class="btn primary" onclick="startParts()">Begin inventory</button>
+  </div>
+
+  <!-- ── PARTS ── -->
+  <div class="phase" id="phaseParts">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-label" id="progressLabel"></span>
+    </div>
+    <div class="part-eyebrow" id="partEyebrow"></div>
+    <div class="part-title" id="partTitle"></div>
+    <div class="part-prompt" id="partPrompt"></div>
+    <div class="rank-header">
+      <div class="rank-label">1 — most like me</div>
+      <div class="rank-label">2</div>
+      <div class="rank-label">3</div>
+      <div class="rank-label">4 — least like me</div>
+    </div>
+    <div class="drop-row" id="dropRow"></div>
+    <div class="touch-hint">Tap a card to select it, then tap a numbered slot. Tap a placed card to return it.</div>
+    <div class="card-pool" id="cardPool"></div>
+    <div class="nav-row">
+      <button class="btn" id="prevBtn" onclick="prevPart()">Back</button>
+      <button class="btn primary" id="nextBtn" onclick="nextPart()" disabled>Next</button>
+    </div>
+  </div>
+
+  <!-- ── REVEAL ── -->
+  <div class="phase" id="phaseReveal">
+    <div class="part-eyebrow">Colour reveal</div>
+    <div class="part-title" style="font-family:var(--font-display);font-size:1.6rem;font-style:italic;margin-bottom:.5rem">Now you can see which card was which</div>
+    <p style="font-size:.9rem;color:var(--neutral-700);margin-bottom:1.5rem">Each card belonged to one of four teaching orientations. Look at how you ranked them across all six rounds before seeing your scored profile.</p>
+    <div class="reveal-grid" id="revealGrid"></div>
+    <div style="text-align:center"><button class="btn primary" onclick="showResults()">See my profile</button></div>
+  </div>
+
+  <!-- ── RESULTS ── -->
+  <div class="phase" id="phaseResults">
+    <div class="results-title">Your teaching orientation profile</div>
+    <div class="results-sub">Scores shown as a percentage of the total points available across all four orientations.</div>
+    <div class="score-grid" id="scoreGrid"></div>
+
+    <div class="compare-section">
+      <div class="compare-title">Compare with your Week 2 result</div>
+      <div class="compare-desc">Add your Week 2 scores to overlay them on the chart. Choose how you want to enter them.</div>
+      <div class="compare-tabs">
+        <button class="tab-btn active" id="tabUpload" onclick="switchTab('upload')">Upload spreadsheet</button>
+        <button class="tab-btn" id="tabManual" onclick="switchTab('manual')">Enter percentages manually</button>
+      </div>
+      <div id="panelUpload">
+        <label class="upload-area" id="uploadArea" for="xlsxInput">
+          <input type="file" id="xlsxInput" accept=".xlsx,.xls" onchange="fileSelected(event)" style="display:none">
+          <span class="upload-label"><strong>Choose file</strong> or drag and drop your Week 2 spreadsheet here</span>
+        </label>
+        <div id="uploadApplyRow" style="display:none;margin-top:.75rem">
+          <span id="uploadFilename" style="font-size:.82rem;color:var(--neutral-700);margin-right:.75rem"></span>
+          <button class="btn primary" onclick="applyUpload()">Apply</button>
+        </div>
+      </div>
+      <div id="panelManual" style="display:none">
+        <p class="manual-desc">Enter the four percentages from your row in the <a href="https://docs.google.com/spreadsheets/d/1sTU6ZW8e700M5A_-OiIIFBLnLnhhNcLy_VdL0CxgXn0/edit?usp=sharing" target="_blank">class Week 2 Google Sheet</a>. (You will need to select your tutorial group from the tabs at the bottom.)</p>
+        <div class="manual-grid">
+          <div class="manual-field">
+            <label class="manual-label lc-label">Learner Centred</label>
+            <div class="manual-input-wrap"><input type="number" class="manual-input" id="manLC" min="0" max="100" placeholder="0"><span class="manual-unit">%</span></div>
+          </div>
+          <div class="manual-field">
+            <label class="manual-label se-label">Social Efficiency</label>
+            <div class="manual-input-wrap"><input type="number" class="manual-input" id="manSE" min="0" max="100" placeholder="0"><span class="manual-unit">%</span></div>
+          </div>
+          <div class="manual-field">
+            <label class="manual-label sr-label">Social Reconstruction</label>
+            <div class="manual-input-wrap"><input type="number" class="manual-input" id="manSR" min="0" max="100" placeholder="0"><span class="manual-unit">%</span></div>
+          </div>
+          <div class="manual-field">
+            <label class="manual-label sa-label">Scholar Academic</label>
+            <div class="manual-input-wrap"><input type="number" class="manual-input" id="manSA" min="0" max="100" placeholder="0"><span class="manual-unit">%</span></div>
+          </div>
+        </div>
+        <button class="btn primary" style="margin-top:.75rem" onclick="applyManual()">Apply</button>
+      </div>
+      <div id="compareStatus"></div>
+    </div>
+
+    <div class="radar-panel">
+      <svg id="radarSvg" width="640" height="560" viewBox="0 0 640 560" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="radar-legend" id="radarLegend">
+      <div class="legend-item"><div class="legend-line" style="background:var(--radar-green)"></div><span>This attempt</span></div>
+    </div>
+
+    <div class="ideology-grid" id="ideologyGrid"></div>
+    <div class="reset-row">
+    <button class="btn" onclick="resetAll()">Start again</button>
+  </div>
+  </div>
+
+  <footer style="border-top:0.5px solid var(--neutral-200);margin-top:2rem;padding:1.25rem 0 2rem">
+    <p style="font-size:0.78rem;color:var(--neutral-400);line-height:1.7;margin-bottom:0.75rem">This tool was developed by Nicole Mockler, based on the work of Michael Schiro (2013), in collaboration with Claude, Anthropic's AI assistant, 2026.</p>
+    <p style="font-size:0.75rem;color:var(--neutral-400);line-height:1.7;margin-bottom:0.4rem">Anthropic. (2026). <em>Claude</em> (claude-sonnet-4-6) [Large language model]. https://www.anthropic.com</p>
+    <p style="font-size:0.75rem;color:var(--neutral-400);line-height:1.7">Schiro, M. S. (2013). <em>Curriculum theory: Conflicting visions and enduring concerns</em> (2nd ed.). SAGE.</p>
+  </footer>
+
+</main>
+
+<script>
+const PARTS = [
+  { eyebrow:"Round 1 of 6", title:"Schools should…", prompt:"Arrange these four cards from the view most like yours (1) to least like yours (4).", cards:[
+    {id:"1sa",ideology:"sa",text:"…be communities where the accumulated knowledge of the culture is transmitted to the youth."},
+    {id:"1lc",ideology:"lc",text:"…be enjoyable, stimulating, child-centred environments organised around the developmental needs and interests of children as those needs and interests present themselves from day to day."},
+    {id:"1sr",ideology:"sr",text:"…provide children with the ability to perceive problems in society, envision a better society, and act to change society so that there is social justice and a better life for all people."},
+    {id:"1se",ideology:"se",text:"…fulfil the needs of society by efficiently training youth to function as members of society."}
+  ]},
+  { eyebrow:"Round 2 of 6", title:"Teachers should…", prompt:"Arrange these four cards from the view most like yours (1) to least like yours (4).", cards:[
+    {id:"2sa",ideology:"sa",text:"…be knowledgeable people, transmitting that which is known to those who do not know it."},
+    {id:"2lc",ideology:"lc",text:"…be aids to children, helping them learn by presenting them with experiences from which they can make meaning."},
+    {id:"2sr",ideology:"sr",text:"…be companions to students, using the environment within which the student lives to help the student learn."},
+    {id:"2se",ideology:"se",text:"…be supervisors of student learning, utilising instructional strategies that will optimise student learning."}
+  ]},
+  { eyebrow:"Round 3 of 6", title:"Learning is best…", prompt:"Arrange these four cards from the view most like yours (1) to least like yours (4).", cards:[
+    {id:"3sa",ideology:"sa",text:"…when teachers present to students clearly and accurately the knowledge that they are to acquire."},
+    {id:"3lc",ideology:"lc",text:"…when students are motivated to actively engage in experiences that allow them to create their own knowledge and understanding of the world in which they live."},
+    {id:"3sr",ideology:"sr",text:"…when students confront a real-life problem or dilemma and participate in the construction of a solution or response."},
+    {id:"3se",ideology:"se",text:"…when students are presented with appropriate stimulus and positive reinforcement for correct responses."}
+  ]},
+  { eyebrow:"Round 4 of 6", title:"The most important knowledge is…", prompt:"Arrange these four cards from the view most like yours (1) to least like yours (4).", cards:[
+    {id:"4sa",ideology:"sa",text:"…the structured knowledge and ways of thinking that have come to be valued by our culture over time."},
+    {id:"4lc",ideology:"lc",text:"…the understanding of oneself and of one's world that comes from direct experience in the world and the construction of personal responses to such experience."},
+    {id:"4sr",ideology:"sr",text:"…a set of social ideals, a commitment to those ideals, and an understanding of how to implement those ideals."},
+    {id:"4se",ideology:"se",text:"…the specific skills and capabilities for action that allow an individual to function as a member of society."}
+  ]},
+  { eyebrow:"Round 5 of 6", title:"Childhood is…", prompt:"Arrange these four cards from the view most like yours (1) to least like yours (4).", cards:[
+    {id:"5sa",ideology:"sa",text:"…essentially a period of intellectual development highlighted by growing reasoning ability and capacity for memory that results in ever greater absorption of cultural knowledge."},
+    {id:"5lc",ideology:"lc",text:"…essentially a time when children unfold according to their own innate natures, felt needs, organic impulses, and internal timetables. The focus is on children as they are during childhood rather than as they might be as adults."},
+    {id:"5sr",ideology:"sr",text:"…essentially a time for practice in and preparation for acting upon society to improve both oneself and the nature of society."},
+    {id:"5se",ideology:"se",text:"…essentially a time of learning in preparation for adulthood, when one will be a functional member of society."}
+  ]},
+  { eyebrow:"Round 6 of 6", title:"Assessment is…", prompt:"Arrange these four cards from the view most like yours (1) to least like yours (4).", cards:[
+    {id:"6sa",ideology:"sa",text:"…about objectively determining the amount of knowledge students have acquired. It allows students to be ranked from those with the greatest intellectual gain to those with the least."},
+    {id:"6lc",ideology:"lc",text:"…about continuously diagnosing children's needs and growth so that further growth can be promoted by appropriate adjustment of their learning environment. It is primarily for the children's benefit, not for comparing children with each other or measuring them against predetermined standards."},
+    {id:"6sr",ideology:"sr",text:"…a comparison of students' performance with their capabilities. Its purpose is to indicate to both students and others the extent to which they are living up to their capabilities."},
+    {id:"6se",ideology:"se",text:"…a means of indicating to others whether or not students can or cannot perform specific skills. Its purpose is to certify students' competence to perform specific tasks."}
+  ]}
+];
+
+const NAMES = {sa:"Scholar Academic",lc:"Learner Centred",sr:"Social Reconstruction",se:"Social Efficiency"};
+const COLOURS = {sa:"green",lc:"red",sr:"yellow",se:"blue"};
+// Spreadsheet column order: B=Red=lc, C=Blue=se, D=Yellow=sr, E=Green=sa (rows 2-7)
+const RADAR_ORDER = ["lc","sr","sa","se"];
+const PART_LABELS = ["Schools should…","Teachers should…","Learning is best…","Most important knowledge…","Childhood is…","Assessment is…"];
+
+const DESCRIPTIONS = {
+  sa: "The 'scholar academic' orientation holds that education is primarily a process of inducting young people into the various disciplines, defined over time by universities and equated with the important cultural knowledge of our society. Teachers are positioned in the middle of the scholar–teacher–student hierarchy, where their role is to take knowledge generated in the academy by scholars and disseminate it to their students. Students are thus positioned as passive receivers of knowledge who may, through attaining a level of proficiency in disciplinary knowledge, themselves move into a higher position in the hierarchical community. Induction into social norms as defined in terms of the disciplines, and the reinforcement and reproduction of those disciplinary norms, is seen as the primary role of education.",
+  lc: "The 'learner-centred' orientation prioritises personal and individual meaning-making as the aim of education, emphasising the learner's own knowledge creation and progress toward their full potential as central, and positioning learners as active leaders of the learning process. Within the learner-centred curriculum, the teacher is positioned as creator of appropriate contexts and environments for learning, orchestrating the conditions within which learners will be enabled to learn and grow. Constructivist approaches to teaching and learning, popular in Australian schools over the past three decades and embedded in many policy and curriculum documents, emerge to some extent at least from learner-centred orientation.",
+  sr: "The 'social reconstruction' orientation is forged around the notion that education can lead to the creation of a more ethical and equitable society through the development of critical consciousness. The teacher is positioned within this orientation as constructor of a transformative learning environment wherein students develop their critical knowledge and skills, while students are positioned as leaders of their own learning and active participants in the learning process. Determinedly focused on social transformation, social reconstruction orientation holds a dual focus on both the learner and the content as starting points for learning. Some of these ideas about equity and social transformation can be observed embedded in the Australian Curriculum via the General Capabilities and Cross-curriculum Priorities.",
+  se: "Holding that the role of education is to 'train' young people to function as members of society, the 'social efficiency' orientation positions teachers as managers of learning, wherein they ascertain the requirements of the 'client' — either society generally or another designated client, such as the business community — and plan learning such that those requirements will be met in the most efficient way possible. Within this orientation, educators take their instructions and cues from social norms, allowing their practice to be shaped rather than shape society. In Australia, an example of the social efficiency orientation can be observed writ large in the link between education and the 'productivity agenda' forged by governments since 2007, which has long positioned education as 'the engine room of the economy'."
+};
+
+let currentPart = 0;
+let rankings = Array(6).fill(null).map(() => Array(4).fill(null));
+let touchSelected = null;
+let previousScores = null;
+let previousMethod = null; // "upload" or "manual"
+let previousPcts = null; // raw pcts for manual entry
+
+function rankToScore(rank) { return rank===1?3:rank===2?2:rank===3?1:0; }
+
+function showPhase(id) {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startParts() { currentPart = 0; renderPart(); showPhase('phaseParts'); }
+
+function renderPart() {
+  const p = PARTS[currentPart];
+  document.getElementById('partEyebrow').textContent = p.eyebrow;
+  document.getElementById('partTitle').textContent = p.title;
+  document.getElementById('partPrompt').textContent = p.prompt;
+  document.getElementById('progressFill').style.width = ((currentPart/6)*100)+'%';
+  document.getElementById('progressLabel').textContent = `${currentPart} of 6`;
+
+  const row = document.getElementById('dropRow');
+  row.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const z = document.createElement('div');
+    z.className = 'drop-zone'; z.dataset.slot = i;
+    z.innerHTML = `<span class="slot-num">${i+1}</span>`;
+    z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('over'); });
+    z.addEventListener('dragleave', () => z.classList.remove('over'));
+    z.addEventListener('drop', e => { e.preventDefault(); z.classList.remove('over'); handleDrop(z, e.dataTransfer.getData('cardId')); });
+    z.addEventListener('click', () => handleZoneClick(z));
+    const saved = rankings[currentPart][i];
+    if (saved) { const c = PARTS[currentPart].cards.find(x => x.id===saved); if(c) placeCardInZone(z, c, i); }
+    row.appendChild(z);
+  }
+
+  const pool = document.getElementById('cardPool');
+  pool.innerHTML = '';
+  [...p.cards].sort(() => Math.random()-0.5).forEach(card => {
+    const placed = rankings[currentPart].includes(card.id);
+    const el = document.createElement('div');
+    el.className = `card${placed?' placed':''}`;
+    el.dataset.cardId = card.id;
+    el.draggable = true;
+    el.textContent = card.text;
+    el.addEventListener('dragstart', e => { e.dataTransfer.setData('cardId', card.id); el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    el.addEventListener('click', () => handleCardClick(el, card));
+    pool.appendChild(el);
+  });
+
+  checkComplete();
+  document.getElementById('prevBtn').disabled = currentPart === 0;
+}
+
+function handleCardClick(el, card) {
+  if (rankings[currentPart].includes(card.id)) return;
+  if (touchSelected === el) { clearTS(); return; }
+  if (touchSelected) clearTS();
+  touchSelected = el; el.classList.add('selected');
+}
+function clearTS() { if (touchSelected) { touchSelected.classList.remove('selected'); touchSelected = null; } }
+
+function handleZoneClick(zone) {
+  const slot = parseInt(zone.dataset.slot);
+  if (touchSelected && !rankings[currentPart].includes(touchSelected.dataset.cardId)) {
+    if (rankings[currentPart][slot] !== null) returnCard(slot);
+    handleDrop(zone, touchSelected.dataset.cardId); clearTS();
+  } else if (rankings[currentPart][slot] !== null) {
+    returnCard(slot);
+    zone.innerHTML = `<span class="slot-num">${slot+1}</span>`;
+    zone.classList.remove('filled'); checkComplete();
+  }
+}
+
+function handleDrop(zone, cardId) {
+  const slot = parseInt(zone.dataset.slot);
+  const card = PARTS[currentPart].cards.find(c => c.id === cardId);
+  if (!card) return;
+  if (rankings[currentPart][slot] !== null) returnCard(slot);
+  rankings[currentPart][slot] = cardId;
+  placeCardInZone(zone, card, slot);
+  const pc = document.querySelector(`[data-card-id="${cardId}"]`);
+  if (pc) pc.classList.add('placed');
+  checkComplete();
+}
+
+function placeCardInZone(zone, card, slot) {
+  zone.innerHTML = ''; zone.classList.add('filled');
+  const btn = document.createElement('button');
+  btn.className = 'placed-card'; btn.textContent = card.text; btn.title = 'Click to return';
+  btn.onclick = e => { e.stopPropagation(); returnCard(slot); zone.innerHTML=`<span class="slot-num">${slot+1}</span>`; zone.classList.remove('filled'); checkComplete(); };
+  zone.appendChild(btn);
+}
+
+function returnCard(slot) {
+  const cardId = rankings[currentPart][slot]; if (!cardId) return;
+  rankings[currentPart][slot] = null;
+  const pc = document.querySelector(`[data-card-id="${cardId}"]`);
+  if (pc) pc.classList.remove('placed');
+}
+
+function checkComplete() {
+  document.getElementById('nextBtn').disabled = !rankings[currentPart].every(r => r !== null);
+}
+
+function nextPart() {
+  if (currentPart < 5) { currentPart++; renderPart(); }
+  else { currentPart = 6; document.getElementById('progressFill').style.width='100%'; document.getElementById('progressLabel').textContent='6 of 6'; buildReveal(); showPhase('phaseReveal'); }
+}
+function prevPart() { if (currentPart > 0) { currentPart--; renderPart(); } }
+
+function buildReveal() {
+  const grid = document.getElementById('revealGrid');
+  grid.innerHTML = '';
+  PARTS.forEach((p, pi) => {
+    const section = document.createElement('div'); section.className = 'reveal-part';
+    const header = document.createElement('div'); header.className = 'reveal-part-header';
+    header.textContent = PART_LABELS[pi]; section.appendChild(header);
+    const slots = document.createElement('div'); slots.className = 'reveal-slots';
+    rankings[pi].forEach((cardId, slot) => {
+      const card = p.cards.find(c => c.id === cardId);
+      const slotEl = document.createElement('div'); slotEl.className = 'reveal-slot';
+      const num = document.createElement('div'); num.className = 'reveal-slot-num'; num.textContent = `Ranked ${slot+1}`;
+      slotEl.appendChild(num);
+      const cardEl = document.createElement('div'); cardEl.className = 'reveal-card-el'; cardEl.textContent = card.text;
+      slotEl.appendChild(cardEl); slots.appendChild(slotEl);
+      setTimeout(() => cardEl.classList.add(card.ideology), pi*120 + slot*80);
+    });
+    section.appendChild(slots); grid.appendChild(section);
+  });
+}
+
+function computeScores() {
+  const scores = {sa:0,lc:0,sr:0,se:0};
+  PARTS.forEach((p, pi) => {
+    rankings[pi].forEach((cardId, slot) => {
+      const card = p.cards.find(c => c.id === cardId);
+      if (card) scores[card.ideology] += rankToScore(slot+1);
+    });
+  });
+  return scores;
+}
+
+function showResults() {
+  const scores = computeScores();
+  const sorted = RADAR_ORDER.slice().sort((a,b) => scores[b]-scores[a]);
+  const dominant = sorted[0], second = sorted[1];
+  const maxScore = 18;
+  const totalPoints = Object.values(scores).reduce((a,b) => a+b, 0);
+
+  // Score cards in radar order
+  const grid = document.getElementById('scoreGrid');
+  grid.innerHTML = '';
+  RADAR_ORDER.forEach(id => {
+    const pct = Math.round(scores[id]/totalPoints*100);
+    const card = document.createElement('div'); card.className = `score-card ${id}`;
+    let badge = '';
+    if (id === dominant) badge = `<div class="score-badge ${id}">your strongest</div>`;
+    else if (id === second) badge = `<div class="score-badge ${id}">second strongest</div>`;
+    card.innerHTML = `<div class="score-name ${id}">${NAMES[id]}</div><div class="score-pct ${id}">${pct}%</div>${badge}`;
+    grid.appendChild(card);
+  });
+
+  drawRadar(scores, previousScores, maxScore);
+  buildIdeologyCards(scores, dominant, second);
+  showPhase('phaseResults');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  // Submit W10 scores immediately — W2 scores added later if student applies them
+  submitW2Data();
+}
+
+function drawRadar(scores, prevScores, maxScore) {
+  const svg = document.getElementById('radarSvg');
+  svg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+  const totalPoints = Object.values(scores).reduce((a,b) => a+b, 0);
+  // Chart centre, radius
+  const cx = 320, cy = 290, R = 160;
+  // Label box dimensions
+  const LW = 140, LH = 52, gap = 10;
+  // Axes: top=lc, right=se, bottom=sr, left=sa (clockwise from top)
+  const axes = RADAR_ORDER.map((id, i) => {
+    const angle = -Math.PI/2 + (2*Math.PI*i/4);
+    return { id, angle, tx: cx + R*Math.cos(angle), ty: cy + R*Math.sin(angle) };
+  });
+
+  // Title
+  const title = document.createElementNS(ns,'text');
+  title.setAttribute('x', cx); title.setAttribute('y', 22);
+  title.setAttribute('text-anchor','middle'); title.setAttribute('font-size','14');
+  title.setAttribute('font-weight','500'); title.setAttribute('fill','#4a4a44');
+  title.setAttribute('font-family','DM Sans, sans-serif');
+  title.textContent = 'Teaching Orientations'; svg.appendChild(title);
+
+  // Grid rings — capped at 50% (5 rings at 10,20,30,40,50%)
+  const SCALE_MAX = 0.50; // chart edge = 50% of total
+  for (let r=1; r<=5; r++) {
+    const frac = r/5;
+    const pts = axes.map(a => `${cx+R*frac*Math.cos(a.angle)},${cy+R*frac*Math.sin(a.angle)}`).join(' ');
+    const poly = document.createElementNS(ns,'polygon');
+    poly.setAttribute('points', pts); poly.setAttribute('fill','none');
+    poly.setAttribute('stroke','#e0dfd9'); poly.setAttribute('stroke-width','0.8');
+    svg.appendChild(poly);
+    // % label on top spoke
+    const lx = cx + R*frac*Math.cos(-Math.PI/2) + 5;
+    const ly = cy + R*frac*Math.sin(-Math.PI/2) - 4;
+    const lt = document.createElementNS(ns,'text');
+    lt.setAttribute('x', lx); lt.setAttribute('y', ly);
+    lt.setAttribute('font-size','9'); lt.setAttribute('fill','#a8a79f');
+    lt.setAttribute('font-family','DM Sans, sans-serif');
+    lt.textContent = `${r*10}%`; svg.appendChild(lt);
+  }
+  // Spokes
+  axes.forEach(a => {
+    const line = document.createElementNS(ns,'line');
+    line.setAttribute('x1',cx); line.setAttribute('y1',cy);
+    line.setAttribute('x2',a.tx); line.setAttribute('y2',a.ty);
+    line.setAttribute('stroke','#e0dfd9'); line.setAttribute('stroke-width','0.8');
+    svg.appendChild(line);
+  });
+
+  // Previous scores polygon (drawn first, behind)
+  // prevScores stored as raw points out of 18; pct = score/18*100; plot relative to 50% cap
+  if (prevScores) {
+    const prevPts = axes.map(a => {
+      const pct = prevScores[a.id]/18; // 0-1 fraction of max per-orientation
+      // Convert to share of total: if all equal, each is 0.25 of total
+      // We need comparable scale to current: plot pct*0.25/SCALE_MAX but
+      // actually prevScores were stored as score/18*18 = raw points, so
+      // pct of total = prevScore[id] / sum(prevScores)
+      return null; // placeholder — see below
+    });
+    // Recalculate: get total of prevScores to find each one's share
+    const prevTotal = Object.values(prevScores).reduce((a,b)=>a+b,0);
+    const prevPts2 = axes.map(a => {
+      const share = prevTotal > 0 ? prevScores[a.id]/prevTotal : 0;
+      const plotFrac = Math.min(share/SCALE_MAX, 1);
+      return `${cx+R*plotFrac*Math.cos(a.angle)},${cy+R*plotFrac*Math.sin(a.angle)}`;
+    }).join(' ');
+    const prevPoly = document.createElementNS(ns,'polygon');
+    prevPoly.setAttribute('points', prevPts2);
+    prevPoly.setAttribute('fill','rgba(123,94,167,0.12)');
+    prevPoly.setAttribute('stroke','#7B5EA7');
+    prevPoly.setAttribute('stroke-width','2.5');
+    prevPoly.setAttribute('stroke-dasharray','6,3');
+    prevPoly.setAttribute('stroke-linejoin','round');
+    svg.appendChild(prevPoly);
+    axes.forEach(a => {
+      const share = prevTotal > 0 ? prevScores[a.id]/prevTotal : 0;
+      const plotFrac = Math.min(share/SCALE_MAX, 1);
+      const dx = cx+R*plotFrac*Math.cos(a.angle), dy = cy+R*plotFrac*Math.sin(a.angle);
+      const dot = document.createElementNS(ns,'circle');
+      dot.setAttribute('cx',dx); dot.setAttribute('cy',dy); dot.setAttribute('r','4');
+      dot.setAttribute('fill','#7B5EA7'); dot.setAttribute('stroke','#fff'); dot.setAttribute('stroke-width','1.5');
+      svg.appendChild(dot);
+    });
+  }
+
+  // Current scores polygon — share of total, plotted against 50% cap
+  const dataPts = axes.map(a => {
+    const share = scores[a.id]/totalPoints;
+    const plotFrac = Math.min(share/SCALE_MAX, 1);
+    return `${cx+R*plotFrac*Math.cos(a.angle)},${cy+R*plotFrac*Math.sin(a.angle)}`;
+  }).join(' ');
+  const poly = document.createElementNS(ns,'polygon');
+  poly.setAttribute('points', dataPts);
+  poly.setAttribute('fill','rgba(146,208,80,0.18)');
+  poly.setAttribute('stroke','#92D050');
+  poly.setAttribute('stroke-width','3');
+  poly.setAttribute('stroke-linejoin','round');
+  svg.appendChild(poly);
+  axes.forEach(a => {
+    const share = scores[a.id]/totalPoints;
+    const plotFrac = Math.min(share/SCALE_MAX, 1);
+    const dx = cx+R*plotFrac*Math.cos(a.angle), dy = cy+R*plotFrac*Math.sin(a.angle);
+    const dot = document.createElementNS(ns,'circle');
+    dot.setAttribute('cx',dx); dot.setAttribute('cy',dy); dot.setAttribute('r','4');
+    dot.setAttribute('fill','#92D050'); dot.setAttribute('stroke','#fff'); dot.setAttribute('stroke-width','1.5');
+    svg.appendChild(dot);
+  });
+
+  // Labels — placed outside axis tip
+  const bgMap = {sa:'#e8f5eb',lc:'#fdecea',sr:'#fff9e6',se:'#e3f0fa'};
+  const borderMap = {sa:'#6abf7a',lc:'#e57373',sr:'#f0c040',se:'#5ba3d9'};
+  const textMap = {sa:'#1b5e2e',lc:'#7f1e1e',sr:'#6b4c00',se:'#0c3460'};
+
+  axes.forEach(a => {
+    const pct = Math.round(scores[a.id]/totalPoints*100);
+    let rx, ry;
+    if (a.id==='lc') { rx = cx - LW/2; ry = a.ty - gap - LH - 16; }    // top — extra clearance above 100% marker
+    else if (a.id==='sr') { rx = a.tx + gap; ry = cy - LH/2; }        // right
+    else if (a.id==='sa') { rx = cx - LW/2; ry = a.ty + gap; }        // bottom
+    else { rx = a.tx - gap - LW; ry = cy - LH/2; }                    // left (se)
+
+    const rect = document.createElementNS(ns,'rect');
+    rect.setAttribute('x',rx); rect.setAttribute('y',ry);
+    rect.setAttribute('width',LW); rect.setAttribute('height',LH);
+    rect.setAttribute('rx','6');
+    rect.setAttribute('fill', bgMap[a.id]);
+    rect.setAttribute('stroke', borderMap[a.id]);
+    rect.setAttribute('stroke-width','1.5');
+    svg.appendChild(rect);
+
+    // Split name into words for multi-line label
+    const words = NAMES[a.id].split(' ');
+    const lineH = 14;
+    const totalLines = words.length + 1; // words + pct line
+    const startY = ry + (LH - (totalLines-1)*lineH) / 2 + 4;
+    words.forEach((word, wi) => {
+      const tw = document.createElementNS(ns,'text');
+      tw.setAttribute('x', rx+LW/2); tw.setAttribute('y', startY + wi*lineH);
+      tw.setAttribute('text-anchor','middle'); tw.setAttribute('font-size','10');
+      tw.setAttribute('font-weight','500'); tw.setAttribute('fill', textMap[a.id]);
+      tw.setAttribute('font-family','DM Sans, sans-serif');
+      tw.textContent = word; svg.appendChild(tw);
+    });
+    const tp = document.createElementNS(ns,'text');
+    tp.setAttribute('x', rx+LW/2); tp.setAttribute('y', startY + words.length*lineH);
+    tp.setAttribute('text-anchor','middle'); tp.setAttribute('font-size','10');
+    tp.setAttribute('fill', textMap[a.id]);
+    tp.setAttribute('font-family','DM Sans, sans-serif');
+    tp.textContent = `${pct}%`; svg.appendChild(tp);
+  });
+
+  // Legend
+  const legend = document.getElementById('radarLegend');
+  legend.innerHTML = `<div class="legend-item"><div class="legend-line" style="background:#92D050"></div><span>This attempt</span></div>`;
+  if (prevScores) {
+    legend.innerHTML += `<div class="legend-item"><div class="legend-line" style="background:#7B5EA7;border-top:2px dashed #7B5EA7;height:0"></div><span>Previous result</span></div>`;
+  }
+}
+
+function buildIdeologyCards(scores, dominant, second) {
+  const grid = document.getElementById('ideologyGrid');
+  grid.innerHTML = '';
+  const sorted = RADAR_ORDER.slice().sort((a,b) => scores[b]-scores[a]);
+  sorted.forEach(id => {
+    const card = document.createElement('div'); card.className = `ideo-card ${id}`;
+    let badge = '';
+    if (id===dominant) badge = `<div class="ideo-badge ${id}">your strongest</div>`;
+    else if (id===second) badge = `<div class="ideo-badge ${id}">second strongest</div>`;
+    card.innerHTML = `${badge}<div class="ideo-name ${id}">${id===dominant?'★ ':id===second?'★★ ':''}${NAMES[id]}</div><div class="ideo-desc ${id}">${DESCRIPTIONS[id]}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ── Spreadsheet upload — pure JS, works in all Safari versions ──
+var pendingUploadFile = null;
+
+function fileSelected(event) {
+  var file = event.target.files[0]; if (!file) return;
+  pendingUploadFile = file;
+  var row = document.getElementById('uploadApplyRow');
+  var nameEl = document.getElementById('uploadFilename');
+  nameEl.textContent = file.name;
+  row.style.display = 'block';
+}
+
+function applyUpload() {
+  var file = pendingUploadFile; if (!file) return;
+  var status = document.getElementById('compareStatus');
+  status.innerHTML = '<span style="font-size:.82rem;color:#a8a79f">Reading spreadsheet…</span>';
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var buf = new Uint8Array(e.target.result);
+      var data = unzipXlsx(buf);
+      var sheetXml = data['xl/worksheets/sheet1.xml'] || data['xl/worksheets/sheet2.xml'];
+      if (!sheetXml) throw new Error('Could not find worksheet in file');
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(sheetXml, 'application/xml');
+      var sharedStrings = [];
+      if (data['xl/sharedStrings.xml']) {
+        var ssDoc = parser.parseFromString(data['xl/sharedStrings.xml'], 'application/xml');
+        sharedStrings = Array.from(ssDoc.querySelectorAll('si')).map(function(si){ return si.textContent.trim(); });
+      }
+      var colMap = {B:'lc', C:'se', D:'sr', E:'sa'};
+      var prev = {sa:0, lc:0, sr:0, se:0};
+      var cells = doc.querySelectorAll('c');
+      var found = 0;
+      cells.forEach(function(c) {
+        var ref = c.getAttribute('r'); if (!ref) return;
+        var cm = ref.match(/^([A-Z]+)/); var rm = ref.match(/([0-9]+)$/);
+        if (!cm || !rm) return;
+        var col = cm[1]; var row = parseInt(rm[1]);
+        if (!colMap[col] || row < 2 || row > 7) return;
+        var t = c.getAttribute('t'); var vEl = c.querySelector('v');
+        if (!vEl) return;
+        var val = (t === 's') ? parseInt(sharedStrings[parseInt(vEl.textContent)]) : parseInt(vEl.textContent);
+        if (val >= 1 && val <= 4) { prev[colMap[col]] += rankToScore(val); found++; }
+      });
+      if (found < 24) throw new Error('Only found ' + found + ' of 24 expected values');
+      previousScores = prev;
+      previousMethod = 'upload';
+      var prevTotal = Object.values(prev).reduce(function(a,b){return a+b;},0);
+      var pcts = RADAR_ORDER.map(function(id){ return NAMES[id].split(' ')[0]+': '+Math.round(prev[id]/prevTotal*100)+'%'; }).join(', ');
+      status.innerHTML = '<div class="compare-loaded">Week 2 result applied: '+pcts+' <button class="compare-clear" onclick="clearPrevious()">Remove</button></div>';
+      drawRadar(computeScores(), previousScores, 18);
+      submitW2Data();
+    } catch(err) {
+      status.innerHTML = '<span style="font-size:.82rem;color:#c0392b">Could not read the spreadsheet: '+err.message+'.</span>';
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// Unzip xlsx (pure JS, no browser APIs) + pure JS DEFLATE decompressor
+function unzipXlsx(view) {
+  var files = {};
+  var i = 0;
+  while (i < view.length - 4) {
+    if (view[i]===0x50&&view[i+1]===0x4B&&view[i+2]===0x03&&view[i+3]===0x04) {
+      var comp=view[i+8]|(view[i+9]<<8);
+      var csz=view[i+18]|(view[i+19]<<8)|(view[i+20]<<16)|(view[i+21]<<24);
+      var nl=view[i+26]|(view[i+27]<<8), el=view[i+28]|(view[i+29]<<8);
+      var ns=i+30, name=new TextDecoder().decode(view.slice(ns,ns+nl));
+      var ds=ns+nl+el, cd=view.slice(ds,ds+csz);
+      if (name.endsWith('.xml')||name.endsWith('.rels')) {
+        try { files[name]=new TextDecoder('utf-8').decode(comp===0?cd:jsInflate(cd)); } catch(e){}
+      }
+      i=ds+csz;
+    } else { i++; }
+  }
+  return files;
+}
+
+function jsInflate(data) {
+  var pos=0, out=new Uint8Array(Math.max(data.length*6,32768)), op=0;
+  function grow(){var nb=new Uint8Array(out.length*2);nb.set(out);out=nb;}
+  function rb(){var b=(data[pos>>3]>>(pos&7))&1;pos++;return b;}
+  function rn(n){var v=0;for(var i=0;i<n;i++)v|=rb()<<i;return v;}
+  function makeH(ls){
+    var mx=0;for(var j=0;j<ls.length;j++)if(ls[j]>mx)mx=ls[j];
+    var bl=new Array(mx+1).fill(0);for(var j=0;j<ls.length;j++)if(ls[j])bl[ls[j]]++;
+    var nc=new Array(mx+1).fill(0);for(var b=1,c=0;b<=mx;b++){c=(c+bl[b-1])<<1;nc[b]=c;}
+    var t={};
+    for(var j=0;j<ls.length;j++){var l=ls[j];if(!l)continue;var c=nc[l],rev=0;for(var b=0;b<l;b++)rev|=((c>>b)&1)<<(l-1-b);t[rev*32+l]=j;nc[l]++;}
+    return {t:t,m:mx};
+  }
+  function rdH(h){var c=0,l=0;for(var i=0;i<h.m;i++){c|=rb()<<i;l++;var k=c*32+l;if(k in h.t)return h.t[k];}throw new Error('huff');}
+  var LB=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
+  var LE=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+  var DB=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];
+  var DE=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+  var CLO=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];
+  var FLL=[];for(var i=0;i<144;i++)FLL.push(8);for(var i=144;i<256;i++)FLL.push(9);for(var i=256;i<280;i++)FLL.push(7);for(var i=280;i<288;i++)FLL.push(8);
+  function blk(ll,dd){
+    while(true){
+      var s=rdH(ll);
+      if(s<256){if(op>=out.length-1)grow();out[op++]=s;}
+      else if(s===256){break;}
+      else{var li=s-257,len=LB[li]+rn(LE[li]),di=rdH(dd),d=DB[di]+rn(DE[di]);if(op+len>=out.length)grow();for(var k=0;k<len;k++){out[op]=out[op-d];op++;}}
+    }
+  }
+  var fin=0;
+  while(!fin){
+    fin=rb();var bt=rn(2);
+    if(bt===0){
+      pos=(pos+7)&~7;var ln=data[pos>>3]|(data[(pos>>3)+1]<<8);pos+=32;
+      if(op+ln>=out.length)grow();for(var k=0;k<ln;k++)out[op++]=data[(pos>>3)+k];pos+=ln*8;
+    } else if(bt===1){blk(makeH(FLL),makeH(new Array(32).fill(5)));}
+    else {
+      var hlit=rn(5)+257,hdist=rn(5)+1,hclen=rn(4)+4,cl=new Array(19).fill(0);
+      for(var i=0;i<hclen;i++)cl[CLO[i]]=rn(3);
+      var clH=makeH(cl),all=[];
+      while(all.length<hlit+hdist){
+        var s=rdH(clH);
+        if(s<16)all.push(s);
+        else if(s===16){var r=rn(2)+3;for(var k=0;k<r;k++)all.push(all[all.length-1]);}
+        else if(s===17){var r=rn(3)+3;for(var k=0;k<r;k++)all.push(0);}
+        else{var r=rn(7)+11;for(var k=0;k<r;k++)all.push(0);}
+      }
+      blk(makeH(all.slice(0,hlit)),makeH(all.slice(hlit)));
+    }
+  }
+  return out.slice(0,op);
+}
+
+function clearPrevious() {
+  previousScores = null;
+  previousMethod = null;
+  document.getElementById('compareStatus').innerHTML = '';
+  document.getElementById('xlsxInput').value = '';
+  ['manLC','manSE','manSR','manSA'].forEach(function(id){ document.getElementById(id).value=''; });
+  const current = computeScores();
+  drawRadar(current, null, 18);
+}
+
+function switchTab(tab) {
+  document.getElementById('tabUpload').classList.toggle('active', tab==='upload');
+  document.getElementById('tabManual').classList.toggle('active', tab==='manual');
+  document.getElementById('panelUpload').style.display = tab==='upload'?'block':'none';
+  document.getElementById('panelManual').style.display = tab==='manual'?'block':'none';
+}
+
+function applyManual() {
+  var lc = parseFloat(document.getElementById('manLC').value);
+  var se = parseFloat(document.getElementById('manSE').value);
+  var sr = parseFloat(document.getElementById('manSR').value);
+  var sa = parseFloat(document.getElementById('manSA').value);
+  var status = document.getElementById('compareStatus');
+  if ([lc,se,sr,sa].some(isNaN)) {
+    status.innerHTML = '<span style="font-size:.82rem;color:#c0392b">Please enter all four percentages.</span>';
+    return;
+  }
+  var total = lc+se+sr+sa;
+  if (Math.abs(total-100) > 1) {
+    status.innerHTML = '<span style="font-size:.82rem;color:#c0392b">The four percentages should add up to 100% (yours add up to '+Math.round(total)+'%).</span>';
+    return;
+  }
+  // Store directly as percentage values — plotting will sum them the same way as current scores
+  previousScores = { lc: lc, se: se, sr: sr, sa: sa };
+  previousMethod = 'manual';
+  previousPcts = { lc: lc, se: se, sr: sr, sa: sa };
+  status.innerHTML = '<div class="compare-loaded">Week 2 result applied: LC '+lc+'%, SE '+se+'%, SR '+sr+'%, SA '+sa+'% <button class="compare-clear" onclick="clearPrevious()">Remove</button></div>';
+  drawRadar(computeScores(), previousScores, 18);
+  submitW2Data();
+}
+
+// ── Google Sheets ──────────────────────────────────────────────────────────
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzpO2YKGHWnWFYvaC-oZJ37Rb5PsRD4SK0yEvTmWWbtQMpZQT-wg22OUUV2dtJvBZEp4g/exec';
+
+function getOrCreateId() {
+  var id = localStorage.getItem('teachingOrientationsId');
+  if (!id) {
+    id = Math.random().toString(36).substr(2,4).toUpperCase() + '-' + Math.floor(Math.random()*900+100);
+    localStorage.setItem('teachingOrientationsId', id);
+  }
+  return id;
+}
+
+// Wire up drag and drop on upload area
+document.addEventListener('DOMContentLoaded', function() {
+  var area = document.getElementById('uploadArea');
+  var input = document.getElementById('xlsxInput');
+  if (!area || !input) return;
+  area.addEventListener('dragover', function(e) {
+    e.preventDefault(); e.stopPropagation();
+    area.style.borderColor = '#4a4a44'; area.style.background = '#f0efec';
+  });
+  area.addEventListener('dragleave', function(e) {
+    e.preventDefault(); e.stopPropagation();
+    area.style.borderColor = ''; area.style.background = '';
+  });
+  area.addEventListener('drop', function(e) {
+    e.preventDefault(); e.stopPropagation();
+    area.style.borderColor = ''; area.style.background = '';
+    var files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      try { var dt = new DataTransfer(); dt.items.add(files[0]); input.files = dt.files; } catch(ex) {}
+      handleUpload({target: {files: files}});
+    }
+  });
+});
+
+// Called automatically when student clicks Apply (upload or manual)
+function submitW2Data() {
+  if (!SHEETS_URL || SHEETS_URL.indexOf('script.google.com') === -1) return;
+  var scores = computeScores();
+  var totalPoints = Object.values(scores).reduce(function(a,b){return a+b;},0);
+  var id = getOrCreateId();
+  var payload = {
+    id: id,
+    date: new Date().toLocaleDateString('en-AU'),
+    w10_lc: Math.round(scores.lc/totalPoints*100),
+    w10_se: Math.round(scores.se/totalPoints*100),
+    w10_sr: Math.round(scores.sr/totalPoints*100),
+    w10_sa: Math.round(scores.sa/totalPoints*100),
+    w2_lc: '', w2_se: '', w2_sr: '', w2_sa: '',
+    w2_source: ''
+  };
+  if (previousScores && previousMethod === 'manual' && previousPcts) {
+    payload.w2_lc = Math.round(previousPcts.lc);
+    payload.w2_se = Math.round(previousPcts.se);
+    payload.w2_sr = Math.round(previousPcts.sr);
+    payload.w2_sa = Math.round(previousPcts.sa);
+    payload.w2_source = 'manual';
+  } else if (previousScores && previousMethod === 'upload') {
+    var pt = Object.values(previousScores).reduce(function(a,b){return a+b;},0);
+    payload.w2_lc = Math.round(previousScores.lc/pt*100);
+    payload.w2_se = Math.round(previousScores.se/pt*100);
+    payload.w2_sr = Math.round(previousScores.sr/pt*100);
+    payload.w2_sa = Math.round(previousScores.sa/pt*100);
+    payload.w2_source = 'upload';
+  }
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  }).catch(function(e){ console.warn('Sheets submit failed:', e); });
+}
+
+function resetAll() {
+  rankings = Array(6).fill(null).map(() => Array(4).fill(null));
+  currentPart = 0; touchSelected = null; previousScores = null;
+  previousMethod = null; previousPcts = null;
+  document.getElementById('xlsxInput').value = '';
+  pendingUploadFile = null;
+  var applyRow = document.getElementById('uploadApplyRow'); if(applyRow) applyRow.style.display='none';
+  ['manLC','manSE','manSR','manSA'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  showPhase('phaseIntro');
+}
+</script>
+</body>
+</html>
