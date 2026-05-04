@@ -1138,7 +1138,8 @@ function sendResultsEmail() {
   // Determine week
   var week = previousScores ? '10 (with Week 2 comparison)' : '10';
 
-  var svgEl = document.querySelector('#radarChart svg') || document.querySelector('svg');
+  // radarSvg is the actual SVG element ID
+  var svgEl = document.getElementById('radarSvg') || document.querySelector('svg');
 
   function doSend(imageDataUrl) {
     var params = {
