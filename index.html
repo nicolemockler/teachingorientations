@@ -241,7 +241,42 @@
   .ideo-desc.sa { color: var(--sa-text); } .ideo-desc.lc { color: var(--lc-text); }
   .ideo-desc.sr { color: var(--sr-text); } .ideo-desc.se { color: var(--se-text); }
 
-  .reset-row { text-align: center; padding-bottom: 2rem; }
+  .email-section {
+  margin: 1.5rem auto 0;
+  max-width: 420px;
+  text-align: center;
+}
+.email-label {
+  font-size: .82rem;
+  color: var(--neutral-500);
+  margin-bottom: .6rem;
+}
+.email-row {
+  display: flex;
+  gap: .5rem;
+  justify-content: center;
+}
+.email-input {
+  flex: 1;
+  max-width: 260px;
+  padding: .5rem .75rem;
+  border: 1px solid var(--neutral-300);
+  border-radius: 6px;
+  font-size: .85rem;
+  font-family: inherit;
+  color: var(--neutral-800);
+  background: var(--neutral-0);
+}
+.email-input:focus {
+  outline: none;
+  border-color: var(--neutral-600);
+}
+#emailStatus {
+  font-size: .78rem;
+  margin-top: .5rem;
+  min-height: 1.2rem;
+}
+.reset-row { text-align: center; padding-bottom: 2rem; }
 
   /* Compare tabs */
   .compare-tabs { display: flex; gap: 6px; margin-bottom: .875rem; }
@@ -272,6 +307,8 @@
     .rank-header { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>emailjs.init("nQvgJ6Kip7-iz_Vp5");</script>
 </head>
 <body>
 
@@ -382,7 +419,15 @@
     </div>
 
     <div class="ideology-grid" id="ideologyGrid"></div>
-    <div class="reset-row">
+    <div class="email-section">
+    <p class="email-label">Email your results to yourself</p>
+    <div class="email-row">
+      <input type="email" id="emailInput" placeholder="your@email.com" class="email-input"/>
+      <button class="btn primary" id="emailBtn" onclick="sendResultsEmail()">Send</button>
+    </div>
+    <div id="emailStatus"></div>
+  </div>
+  <div class="reset-row">
     <button class="btn" onclick="resetAll()">Start again</button>
   </div>
   </div>
@@ -1046,6 +1091,86 @@ function submitW2Data() {
   }).catch(function(e){ console.warn('Sheets submit failed:', e); });
 }
 
+function svgToPngDataUrl(svgEl, callback) {
+  var svgData = new XMLSerializer().serializeToString(svgEl);
+  var svgBlob = new Blob([svgData], {type:'image/svg+xml;charset=utf-8'});
+  var url = URL.createObjectURL(svgBlob);
+  var img = new Image();
+  img.onload = function() {
+    var canvas = document.createElement('canvas');
+    canvas.width = svgEl.viewBox.baseVal.width || svgEl.getBoundingClientRect().width || 400;
+    canvas.height = svgEl.viewBox.baseVal.height || svgEl.getBoundingClientRect().height || 400;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+    callback(canvas.toDataURL('image/png'));
+  };
+  img.onerror = function() {
+    URL.revokeObjectURL(url);
+    callback(null);
+  };
+  img.src = url;
+}
+
+function sendResultsEmail() {
+  var email = document.getElementById('emailInput').value.trim();
+  var status = document.getElementById('emailStatus');
+  var btn = document.getElementById('emailBtn');
+
+  if (!email || !email.includes('@')) {
+    status.innerHTML = '<span style="color:#c0392b">Please enter a valid email address.</span>';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  status.innerHTML = '';
+
+  var scores = computeScores();
+  var total = Object.values(scores).reduce(function(a,b){return a+b;},0);
+  var lc = Math.round(scores.lc/total*100);
+  var se = Math.round(scores.se/total*100);
+  var sr = Math.round(scores.sr/total*100);
+  var sa = Math.round(scores.sa/total*100);
+
+  // Determine week
+  var week = previousScores ? '10 (with Week 2 comparison)' : '10';
+
+  var svgEl = document.querySelector('#radarChart svg') || document.querySelector('svg');
+
+  function doSend(imageDataUrl) {
+    var params = {
+      to_email: email,
+      week: week,
+      lc: lc, se: se, sr: sr, sa: sa,
+      graph_image: imageDataUrl || '',
+      name: 'Student'
+    };
+
+    emailjs.send('service_c0pqf3v', 'template_jy73uel', params)
+      .then(function() {
+        status.innerHTML = '<span style="color:#1b5e2e">✓ Email sent successfully.</span>';
+        btn.textContent = 'Sent';
+      })
+      .catch(function(err) {
+        status.innerHTML = '<span style="color:#c0392b">Could not send email. Please try again.</span>';
+        btn.disabled = false;
+        btn.textContent = 'Send';
+        console.warn('EmailJS error:', err);
+      });
+  }
+
+  if (svgEl) {
+    svgToPngDataUrl(svgEl, function(dataUrl) {
+      doSend(dataUrl);
+    });
+  } else {
+    doSend(null);
+  }
+}
+
 function resetAll() {
   rankings = Array(6).fill(null).map(() => Array(4).fill(null));
   currentPart = 0; touchSelected = null; previousScores = null;
@@ -1054,6 +1179,9 @@ function resetAll() {
   pendingUploadFile = null;
   var applyRow = document.getElementById('uploadApplyRow'); if(applyRow) applyRow.style.display='none';
   ['manLC','manSE','manSR','manSA'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var ei = document.getElementById('emailInput'); if(ei) ei.value='';
+  var es = document.getElementById('emailStatus'); if(es) es.innerHTML='';
+  var eb = document.getElementById('emailBtn'); if(eb){eb.disabled=false; eb.textContent='Send';}
   showPhase('phaseIntro');
 }
 </script>
