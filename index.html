@@ -1029,11 +1029,19 @@ function getOrCreateId() {
   return id;
 }
 
-// Wire up drag and drop on upload area
+// Wire up file input (Chrome needs JS listener, not just onchange attribute)
+// and drag-and-drop on upload area
 document.addEventListener('DOMContentLoaded', function() {
   var area = document.getElementById('uploadArea');
   var input = document.getElementById('xlsxInput');
   if (!area || !input) return;
+
+  // Chrome-compatible change listener
+  input.addEventListener('change', function(e) {
+    fileSelected(e);
+  });
+
+  // Drag over
   area.addEventListener('dragover', function(e) {
     e.preventDefault(); e.stopPropagation();
     area.style.borderColor = '#4a4a44'; area.style.background = '#f0efec';
@@ -1042,13 +1050,17 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault(); e.stopPropagation();
     area.style.borderColor = ''; area.style.background = '';
   });
+  // Drop — call fileSelected with a synthetic event, then show Apply button
   area.addEventListener('drop', function(e) {
     e.preventDefault(); e.stopPropagation();
     area.style.borderColor = ''; area.style.background = '';
     var files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      try { var dt = new DataTransfer(); dt.items.add(files[0]); input.files = dt.files; } catch(ex) {}
-      handleUpload({target: {files: files}});
+      pendingUploadFile = files[0];
+      var row = document.getElementById('uploadApplyRow');
+      var nameEl = document.getElementById('uploadFilename');
+      if (nameEl) nameEl.textContent = files[0].name;
+      if (row) row.style.display = 'block';
     }
   });
 });
@@ -1091,27 +1103,31 @@ function submitW2Data() {
   }).catch(function(e){ console.warn('Sheets submit failed:', e); });
 }
 
-function svgToPngDataUrl(svgEl, callback) {
+
+function svgToDataUrl(svgEl) {
+  // Use base64 data URL — works cross-browser on GitHub Pages (no blob URL CORS issues)
   var svgData = new XMLSerializer().serializeToString(svgEl);
-  var svgBlob = new Blob([svgData], {type:'image/svg+xml;charset=utf-8'});
-  var url = URL.createObjectURL(svgBlob);
+  var svgBase64 = btoa(unescape(encodeURIComponent(svgData)));
+  return 'data:image/svg+xml;base64,' + svgBase64;
+}
+
+function captureRadarPng(callback) {
+  var svgEl = document.getElementById('radarSvg');
+  if (!svgEl) { callback(null); return; }
+  var dataUrl = svgToDataUrl(svgEl);
+  var canvas = document.createElement('canvas');
+  canvas.width = svgEl.viewBox.baseVal.width || 640;
+  canvas.height = svgEl.viewBox.baseVal.height || 560;
+  var ctx = canvas.getContext('2d');
   var img = new Image();
   img.onload = function() {
-    var canvas = document.createElement('canvas');
-    canvas.width = svgEl.viewBox.baseVal.width || svgEl.getBoundingClientRect().width || 400;
-    canvas.height = svgEl.viewBox.baseVal.height || svgEl.getBoundingClientRect().height || 400;
-    var ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0);
-    URL.revokeObjectURL(url);
     callback(canvas.toDataURL('image/png'));
   };
-  img.onerror = function() {
-    URL.revokeObjectURL(url);
-    callback(null);
-  };
-  img.src = url;
+  img.onerror = function() { callback(null); };
+  img.src = dataUrl;
 }
 
 function sendResultsEmail() {
@@ -1134,19 +1150,14 @@ function sendResultsEmail() {
   var se = Math.round(scores.se/total*100);
   var sr = Math.round(scores.sr/total*100);
   var sa = Math.round(scores.sa/total*100);
-
-  // Determine week
   var week = previousScores ? '10 (with Week 2 comparison)' : '10';
 
-  // radarSvg is the actual SVG element ID
-  var svgEl = document.getElementById('radarSvg') || document.querySelector('svg');
-
-  function doSend(imageDataUrl) {
+  captureRadarPng(function(pngDataUrl) {
     var params = {
       to_email: email,
       week: week,
       lc: lc, se: se, sr: sr, sa: sa,
-      graph_image: imageDataUrl || '',
+      graph_image: pngDataUrl || '',
       name: 'Student'
     };
 
@@ -1156,20 +1167,12 @@ function sendResultsEmail() {
         btn.textContent = 'Sent';
       })
       .catch(function(err) {
-        status.innerHTML = '<span style="color:#c0392b">Could not send email. Please try again.</span>';
+        status.innerHTML = '<span style="color:#c0392b">Could not send email — ' + (err.text || 'please try again') + '</span>';
         btn.disabled = false;
         btn.textContent = 'Send';
         console.warn('EmailJS error:', err);
       });
-  }
-
-  if (svgEl) {
-    svgToPngDataUrl(svgEl, function(dataUrl) {
-      doSend(dataUrl);
-    });
-  } else {
-    doSend(null);
-  }
+  });
 }
 
 function resetAll() {
