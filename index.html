@@ -1115,16 +1115,17 @@ function captureRadarPng(callback) {
   var svgEl = document.getElementById('radarSvg');
   if (!svgEl) { callback(null); return; }
   var dataUrl = svgToDataUrl(svgEl);
+  // Render at 400x350 as JPEG (keeps well under EmailJS 50KB variable limit)
   var canvas = document.createElement('canvas');
-  canvas.width = svgEl.viewBox.baseVal.width || 640;
-  canvas.height = svgEl.viewBox.baseVal.height || 560;
+  canvas.width = 400;
+  canvas.height = 350;
   var ctx = canvas.getContext('2d');
   var img = new Image();
   img.onload = function() {
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0);
-    callback(canvas.toDataURL('image/png'));
+    ctx.fillRect(0, 0, 400, 350);
+    ctx.drawImage(img, 0, 0, 400, 350);
+    callback(canvas.toDataURL('image/jpeg', 0.82));
   };
   img.onerror = function() { callback(null); };
   img.src = dataUrl;
